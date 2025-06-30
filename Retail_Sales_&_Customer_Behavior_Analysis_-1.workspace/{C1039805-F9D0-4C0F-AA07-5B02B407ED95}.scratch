@@ -1,0 +1,154 @@
+create database retail_analytics;
+use retail_analytics;
+create table customers(
+customerid varchar(10) primary key,
+name varchar(100),
+age int,
+gender varchar(10),
+email varchar(50),
+region varchar(100),
+signupdate date
+);
+drop table customers;
+create table products(
+productid varchar(10) primary key,
+name varchar(100),
+category varchar(50),
+subcategory varchar(100),
+price decimal(10,2),
+stock int
+);
+
+CREATE TABLE stores (
+    storeid VARCHAR(10) PRIMARY KEY,
+    Name VARCHAR(100),
+    Location VARCHAR(100),
+    Region VARCHAR(50),
+    Manager VARCHAR(100)
+);
+
+create table sales(
+orderid varchar(10) primary key,
+date date,
+customerid varchar(10),
+ProductID VARCHAR(10),
+    StoreID VARCHAR(10),
+    Quantity INT,
+    Sales DECIMAL(10,2),
+    Discount DECIMAL(4,2),
+    Profit DECIMAL(10,2),
+    FOREIGN KEY (customerid) REFERENCES customers(customerid),
+    FOREIGN KEY (productid) REFERENCES products(productid),
+    FOREIGN KEY (storeid) REFERENCES stores(storeid)
+);
+
+SHOW VARIABLES LIKE 'secure_file_priv';
+
+-- Replace the path below with your actual path
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/customers.csv'
+INTO TABLE customers
+FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/products.csv'
+INTO TABLE products
+FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/stores.csv'
+INTO TABLE stores
+FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/sales.csv'
+INTO TABLE sales
+FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+
+
+
+select count(*) from customers;
+SELECT COUNT(*) FROM products;
+SELECT COUNT(*) FROM stores;
+SELECT COUNT(*) FROM sales;
+
+
+select
+sum(sales) as total_sales,
+sum(profit) as total_profit,
+sum(quantity) as total_quantity
+from sales;
+
+select
+p.name as product_name,
+sum(s.sales) as total_sales,
+sum(s.quantity) as total_quantity,
+sum(s.profit) as total_profit
+from sales s
+join products p on s.productiD=p.productid
+group by p.name
+order by total_sales desc;
+ 
+select
+c.name as customer_name,
+c.region,
+sum(s.sales) as total_spent
+from sales s
+join customers c on c.customerid = c.customerid
+group by c.customerid,c.name,c.region
+order by total_spent desc
+limit 5;
+
+select
+date_format(date,'%y-%m') as month,
+sum(sales) as total_sales
+from sales
+group by month
+order by month;
+
+select
+c.region,
+sum(s.sales) as total_sales,
+sum(s.profit) as total_profit
+from sales s
+join customers c on s.customerid = c.customerid
+group by c.region
+order by total_profit desc;
+
+
+select
+st.name as store_name,
+st.region,
+sum(s.profit) as total_profit
+from sales s
+join stores st on s.storeid = st.storeid
+group by st.name,st.region
+order by total_profit desc
+limit 1;
+
+select
+discount,
+count(*) as num_orders,
+avg(sales) as avg_sale_value
+from sales
+group by discount
+order by discount;
+
+select
+category,
+sum(sales) as total_sales,
+sum(profit) as total_profit
+from sales s
+join products p on s.productid = p.productid
+group by category
+order by total_profit desc;
+
+select *
+from customers
+where customerid not in (select distinct customerid from sales);
+
